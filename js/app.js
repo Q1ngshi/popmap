@@ -908,6 +908,11 @@ async function flyToLocation(locationName) {
                 currentPOIs = await fetchDynamicPOIs(city.name);
             } else {
                 currentPOIs = originalPOIs[city.name] || [];
+                // 如果本地数据为空，降级到动态 POI
+                if (currentPOIs.length === 0) {
+                    currentPOIs = await fetchDynamicPOIs(city.name);
+                    currentCity.isDynamic = true;
+                }
             }
             viewer.entities.removeAll(); renderCityPOIs(currentPOIs);
             currentProvincePois[currentCity.name] = currentPOIs;
