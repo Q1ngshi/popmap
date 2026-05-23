@@ -23,14 +23,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 删除本地 cesium/ 目录（已从 CDN 加载，无需部署 100MB+）
-      - name: Remove local Cesium (using CDN)
-        run: rm -rf cesium/
+      - uses: actions/configure-pages@v5
 
-      - uses: actions/configure-pages@v4
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: '.'
+
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
