@@ -528,6 +528,7 @@ const panelTitle = document.getElementById('panel-title');
 const poiSection = document.getElementById('poi-section');
 const tripListDiv = document.getElementById('trip-list');
 const btnShare = document.getElementById('btn-share');
+const btnExport = document.getElementById('btn-export');
 const btnRoute = document.getElementById('btn-route');
 const btnClearTrip = document.getElementById('btn-clear-trip');
 const routeBottomPanel = document.getElementById('route-bottom-panel');
@@ -758,6 +759,7 @@ function updateTripDisplay() {
         updateTripDisplayUI();
     }
     btnShare.disabled = tripList.length === 0;
+    btnExport.disabled = tripList.length === 0;
     btnRoute.disabled = tripList.length < 2;
 }
 
@@ -1023,6 +1025,71 @@ btnShare.addEventListener('click', () => {
         document.body.removeChild(tempInput);
         showToast('行程链接已复制到剪贴板');
     });
+});
+
+btnExport.addEventListener('click', async () => {
+    if (tripList.length === 0) return;
+
+    const tripSection = document.getElementById('trip-section');
+    const routeBottomPanel = document.getElementById('route-bottom-panel');
+
+    // 如果底部路线面板正在显示，先隐藏它（避免被截进去）
+    const routeWasVisible = routeBottomPanel.classList.contains('show');
+    if (routeWasVisible) routeBottomPanel.classList.remove('show');
+
+    // 1. 生成行程标题
+    const cities = [...new Set(tripList.map(t => t.city))];
+    let title;
+    if (cities.length === 1) {
+        title = cities[0] + '旅行计划';
+    } else if (cities.length === 2) {
+        title = cities.join('·') + '旅行计划';
+    } else {
+        title = cities.slice(0, 2).join('·') + `等${cities.length}城旅行计划`;
+    }
+
+    // 2. 临时插入标题栏
+    const headerEl = document.createElement('div');
+    headerEl.id = 'export-temp-header';
+    headerEl.style.cssText = 'padding:8px 0;font-size:16px;font-weight:bold;color:#3a2a1a;text-align:center;border-bottom:1px solid #e0d5c0;margin-bottom:8px;';
+    headerEl.textContent = '🗺️ ' + title;
+    tripSection.insertBefore(headerEl, tripSection.firstChild);
+
+    // 3. 临时插入品牌水印
+    const footerEl = document.createElement('div');
+    footerEl.id = 'export-temp-footer';
+    footerEl.style.cssText = 'padding:6px 0 0 0;font-size:10px;color:#b0a090;text-align:center;border-top:1px solid #e0d5c0;margin-top:10px;';
+    footerEl.textContent = 'Made with ❤️ by PopMap · q1ngshi.github.io/popmap';
+    tripSection.appendChild(footerEl);
+
+    // 4. 截图
+    try {
+        const canvas = await html2canvas(tripSection, {
+            backgroundColor: '#f8f5e6',
+            scale: 2,
+            useCORS: true,
+            logging: false
+        });
+
+        // 5. 触发下载
+        const safeFileName = title.replace(/[\\/:*?"<>|]/g, '_').replace(/\s/g, '_');
+        const link = document.createElement('a');
+        link.download = `PopMap_${safeFileName}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+
+        showToast('✅ 行程图片已保存');
+    } catch (e) {
+        console.error('导出失败', e);
+        showToast('导出失败，请重试');
+    }
+
+    // 6. 移除临时元素
+    document.getElementById('export-temp-header')?.remove();
+    document.getElementById('export-temp-footer')?.remove();
+
+    // 7. 恢复底部路线面板（如果之前是显示的）
+    if (routeWasVisible) routeBottomPanel.classList.add('show');
 });
 
 btnClearTrip.addEventListener('click', () => { 
