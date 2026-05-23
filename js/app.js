@@ -464,6 +464,40 @@ async function searchAmapPOIs(cityName, type = '景点') {
     return [];
 }
 
+async function fetchDynamicPOIs(cityName) {
+    const cacheKey = `fetch_${cityName}`;
+    if (dynamicPOICache[cacheKey]) return dynamicPOICache[cacheKey];
+    const url = `https://restapi.amap.com/v3/place/text?keywords=${encodeURIComponent(cityName)}&city=${encodeURIComponent(cityName)}&key=${AMAP_KEY}&offset=10`;
+    const typeMap = { '风景名胜': '景点', '餐饮': '美食', '住宿': '住宿' };
+    try {
+        const resp = await fetch(url);
+        const data = await resp.json();
+        if (data.status === '1' && data.pois?.length > 0) {
+            const pois = data.pois.map(p => {
+                const rawType = p.type ? p.type.split('|')[0].split(';')[0] : '';
+                let mappedType = '其他';
+                for (const [key, val] of Object.entries(typeMap)) {
+                    if (rawType.includes(key)) { mappedType = val; break; }
+                }
+                return {
+                    name: p.name,
+                    type: mappedType,
+                    rating: parseFloat((p.biz_ext?.rating || '4.0')),
+                    lng: parseFloat(p.location.split(',')[0]),
+                    lat: parseFloat(p.location.split(',')[1]),
+                    intro: p.address || '',
+                    hours: '暂无',
+                    ticket: '暂无',
+                    dynamic: true
+                };
+            });
+            dynamicPOICache[cacheKey] = pois;
+            return pois;
+        }
+    } catch (e) { console.error('fetchDynamicPOIs error:', e); }
+    return [];
+}
+
 async function refreshDynamicCityPOIs(type) {
     if (!currentCity || !currentCity.isDynamic) return;
     showLoading(true);
@@ -871,7 +905,7 @@ async function flyToLocation(locationName) {
             const pa = getProvinceAdcode(city.name); if (pa) { await loadBoundary(pa); } else { await loadChinaBoundary(); }
             // 2. POI 来源：动态城市用 API，否则用本地数据
             if (isDynamic) {
-                currentPOIs = await searchAmapPOIs(city.name, '景点');
+                currentPOIs = await fetchDynamicPOIs(city.name);
             } else {
                 currentPOIs = originalPOIs[city.name] || [];
             }
@@ -1009,12 +1043,7 @@ filterBtns.forEach(btn => {
             if (currentCity?.isDynamic) {
                 showLoading(true);
                 try {
-                    const [sights, foods, hotels] = await Promise.all([
-                        searchAmapPOIs(currentCity.name, '景点'),
-                        searchAmapPOIs(currentCity.name, '美食'),
-                        searchAmapPOIs(currentCity.name, '住宿')
-                    ]);
-                    currentPOIs = [...sights, ...foods, ...hotels];
+                    currentPOIs = await fetchDynamicPOIs(currentCity.name);
                     viewer.entities.removeAll();
                     renderCityPOIs(currentPOIs);
                     if (rightPanel.classList.contains('show')) {
