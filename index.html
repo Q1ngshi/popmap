@@ -3,27 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PopMap · 全功能版</title>
+    <title>PopMap · 3D旅行规划 | 在地球上发现你的下一段旅程</title>
+    <meta name="description" content="PopMap 是一个手绘风格的3D旅行规划工具。搜索任意城市，探索景点、规划行程、一键分享。支持离线使用，添加至主屏幕即可像原生App一样流畅。">
+    <meta name="keywords" content="旅行规划,3D地图,旅行路线,行程规划,旅游攻略,Cesium,手绘地图">
+    <meta name="author" content="Qingshi">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://q1ngshi.github.io/popmap/">
 
     <!-- PWA -->
     <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#3a2a1a">
+    <meta name="theme-color" content="#c4813a">
 
-    <!-- Open Graph -->
-    <meta property="og:title" content="PopMap · 3D 旅行规划">
-    <meta property="og:description" content="在 3D 地球上探索城市，智能规划旅行路线，一键分享行程">
-    <meta property="og:image" content="./screenshot.png">
-    <meta property="og:url" content="">
+    <!-- iOS 全屏沉浸 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="PopMap">
+    <link rel="apple-touch-startup-image" href="./screenshot.png">
+
+    <!-- Open Graph 分享卡片 -->
+    <meta property="og:title" content="PopMap · 3D旅行规划 | 在地球上发现你的下一段旅程">
+    <meta property="og:description" content="手绘风格的地球上，搜索城市、探索景点、规划行程、一键分享。你的下一段旅程，从这里开始。">
+    <meta property="og:image" content="https://q1ngshi.github.io/popmap/screenshot.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:url" content="https://q1ngshi.github.io/popmap/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="PopMap">
+    <meta property="og:locale" content="zh_CN">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="PopMap · 3D 旅行规划">
-    <meta name="twitter:description" content="在 3D 地球上探索城市，智能规划旅行路线，一键分享行程">
+    <meta name="twitter:title" content="PopMap · 3D旅行规划">
+    <meta name="twitter:description" content="手绘风格的地球上，搜索城市、探索景点、规划行程、一键分享。">
     <meta name="twitter:image" content="https://q1ngshi.github.io/popmap/screenshot.png">
 
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- 启动画面（纯CSS，加载完成后自动消失） -->
+    <div id="splash-screen" style="position:fixed;top:0;left:0;width:100%;height:100%;background:#f8f5e6;z-index:99999;display:flex;align-items:center;justify-content:center;font-size:24px;color:#c4813a;font-family:'PingFang SC','Microsoft YaHei',sans-serif;">
+        🗺️ PopMap
+    </div>
 
     <!-- Cesium.js - 由 config.js 控制路径（本地/在线自适应） -->
     <script>
@@ -31,6 +50,28 @@
     </script>
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.111/Build/Cesium/Cesium.js"></script>
     <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.111/Build/Cesium/Widgets/widgets.css">
+
+    <!-- 结构化数据（JSON-LD） -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "PopMap",
+        "description": "手绘风格的3D旅行规划工具。搜索城市、探索景点、规划行程、一键分享。",
+        "url": "https://q1ngshi.github.io/popmap/",
+        "applicationCategory": "TravelApplication",
+        "operatingSystem": "Web, iOS, Android",
+        "author": {
+            "@type": "Person",
+            "name": "Qingshi"
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "CNY"
+        }
+    }
+    </script>
 </head>
 <body>
     <div id="cesiumContainer"></div>

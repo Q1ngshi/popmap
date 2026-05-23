@@ -1208,4 +1208,9 @@ function parseShareLink() {
 loadChinaBoundary();
 parseShareLink();
 console.log('✅ PopMap 全功能版已启动');
+// 隐藏启动画面
+setTimeout(() => {
+    const splash = document.getElementById('splash-screen');
+    if (splash) { splash.style.transition = 'opacity 0.5s'; splash.style.opacity = '0'; setTimeout(() => splash.remove(), 500); }
+}, 1000);
 window.addEventListener('load', () => setTimeout(() => Perf.report(), 500));
