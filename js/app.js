@@ -1037,15 +1037,21 @@ btnExport.addEventListener('click', async () => {
     const routeWasVisible = routeBottomPanel.classList.contains('show');
     if (routeWasVisible) routeBottomPanel.classList.remove('show');
 
-    // 1. 生成行程标题
-    const cities = [...new Set(tripList.map(t => t.city))];
-    let title;
-    if (cities.length === 1) {
-        title = cities[0] + '旅行计划';
-    } else if (cities.length === 2) {
-        title = cities.join('·') + '旅行计划';
+    // 1. 生成行程标题（优先使用自定义名称，否则自动生成）
+    const tripTitleEl = document.getElementById('trip-title');
+    let title = tripTitleEl.textContent.trim();
+    if (title === '🗺️ 我的行程' || title === '我的行程' || !title) {
+        const cities = [...new Set(tripList.map(t => t.city))];
+        if (cities.length === 1) {
+            title = cities[0] + '旅行计划';
+        } else if (cities.length === 2) {
+            title = cities.join('·') + '旅行计划';
+        } else {
+            title = cities.slice(0, 2).join('·') + `等${cities.length}城旅行计划`;
+        }
     } else {
-        title = cities.slice(0, 2).join('·') + `等${cities.length}城旅行计划`;
+        // 移除开头的🗺️表情符号
+        title = title.replace(/^🗺️\s*/, '');
     }
 
     // 2. 临时插入标题栏
@@ -1098,6 +1104,9 @@ btnClearTrip.addEventListener('click', () => {
         updateTripDisplay(); 
         clearRoute(); 
         routeBottomPanel.classList.remove('show');
+        // 重置行程名称
+        const tripTitle = document.getElementById('trip-title');
+        if (tripTitle) { tripTitle.textContent = '🗺️ 我的行程'; localStorage.removeItem('popmap_trip_name'); }
     }
 });
 document.getElementById('panel-close').addEventListener('click', () => { rightPanel.classList.remove('show'); panelTab.classList.remove('hidden'); });
@@ -1214,6 +1223,18 @@ setTimeout(() => {
     if (splash) { splash.style.transition = 'opacity 0.5s'; splash.style.opacity = '0'; setTimeout(() => splash.remove(), 500); }
 }, 1000);
 window.addEventListener('load', () => setTimeout(() => Perf.report(), 500));
+
+// ==================== 行程名称编辑器 ====================
+(function() {
+    const tripTitle = document.getElementById('trip-title');
+    // 恢复保存的行程名称
+    const savedName = localStorage.getItem('popmap_trip_name');
+    if (savedName && tripTitle) tripTitle.textContent = savedName;
+    // 编辑时自动保存
+    tripTitle.addEventListener('blur', () => {
+        localStorage.setItem('popmap_trip_name', tripTitle.textContent.trim());
+    });
+})();
 
 // ==================== 反馈入口 ====================
 document.getElementById('feedback-btn').addEventListener('click', () => {
