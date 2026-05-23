@@ -1258,3 +1258,22 @@ document.getElementById('btn-random').addEventListener('click', () => {
     searchInput.value = randomCity;
     flyToLocation(randomCity);
 });
+
+// ==================== 移动端底部导航 ====================
+document.querySelectorAll('#mobile-nav .nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const action = btn.dataset.action;
+        if (action === 'search') {
+            searchInput.focus();
+            searchInput.scrollIntoView({ behavior: 'smooth' });
+        } else if (action === 'trip') {
+            if (!rightPanel.classList.contains('show')) {
+                panelTab.click();
+            }
+        } else if (action === 'share') {
+            btnShare.click();
+        } else if (action === 'random') {
+            document.getElementById('btn-random').click();
+        }
+    });
+});

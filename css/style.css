@@ -174,4 +174,26 @@ body, html { width: 100%; height: 100vh; overflow: hidden; background: #f8f5e6; 
     .hint { font-size: 9px; padding: 3px 10px; bottom: 80px; left: 8px; }
     .loading-indicator { padding: 16px 22px; }
     .toast { top: 10px; right: 10px; left: 10px; max-width: none; }
+    /* 移动端导航条 */
+    #mobile-nav { display: flex !important; }
+    #route-bottom-panel { bottom: 56px; }
+    .hint { bottom: 64px; }
+    #feedback-btn { bottom: 64px; }
 }
+
+/* 底部导航条（桌面端隐藏） */
+#mobile-nav {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 500;
+    background: rgba(255,250,240,0.97); border-top: 1px solid #e0d5c0;
+    padding: 6px 12px calc(6px + env(safe-area-inset-bottom));
+    justify-content: space-around; align-items: center;
+}
+.nav-btn {
+    background: none; border: none; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-size: 10px; color: #8a7560; padding: 4px 10px; border-radius: 8px;
+    transition: color 0.2s, background 0.2s;
+}
+.nav-btn span { font-size: 10px; }
+.nav-btn:active, .nav-btn:hover { color: #c4813a; background: rgba(196,129,58,0.08); }
