@@ -1277,3 +1277,18 @@ document.querySelectorAll('#mobile-nav .nav-btn').forEach(btn => {
         }
     });
 });
+
+// ==================== 暗色模式切换 ====================
+(function() {
+    const btn = document.getElementById('btn-darkmode');
+    // 恢复用户偏好
+    if (localStorage.getItem('popmap_darkmode') === 'true') {
+        document.body.classList.add('dark-mode');
+        btn.textContent = '☀️';
+    }
+    btn.addEventListener('click', () => {
+        const isDark = document.body.classList.toggle('dark-mode');
+        btn.textContent = isDark ? '☀️' : '🌙';
+        localStorage.setItem('popmap_darkmode', isDark);
+    });
+})();
