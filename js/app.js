@@ -876,6 +876,10 @@ async function flyToLocation(locationName) {
                 currentPOIs = originalPOIs[city.name] || [];
             }
             viewer.entities.removeAll(); renderCityPOIs(currentPOIs);
+            currentProvincePois[currentCity.name] = currentPOIs;
+            rightPanel.classList.add('show');
+            panelTab.classList.add('hidden');
+            refreshRightPanel();
             viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(city.lng, city.lat, 35000), orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 }, duration: 1.8 });
             addHistory(city.name);
             showLoading(false);
@@ -968,7 +972,7 @@ btnShare.addEventListener('click', () => {
     } else {
         compressed = btoa(unescape(encodeURIComponent(json)));
     }
-    const shareUrl = `${window.location.origin}${window.location.pathname.replace('index.html', 'share.html')}?d=${compressed}`;
+    const shareUrl = `${window.location.origin}${window.location.pathname}?d=${compressed}`;
     navigator.clipboard.writeText(shareUrl).then(() => {
         showToast('行程链接已复制到剪贴板');
     }).catch(() => {
@@ -994,10 +998,45 @@ document.getElementById('panel-close').addEventListener('click', () => { rightPa
 document.getElementById('panel-back').addEventListener('click', backToList);
 document.getElementById('panel-close-detail').addEventListener('click', () => { rightPanel.classList.remove('show'); panelTab.classList.remove('hidden'); backToList(); });
 
-// 动态城市筛选按钮
-document.getElementById('filter-sight').addEventListener('click', () => refreshDynamicCityPOIs('景点'));
-document.getElementById('filter-food').addEventListener('click', () => refreshDynamicCityPOIs('美食'));
-document.getElementById('filter-hotel').addEventListener('click', () => refreshDynamicCityPOIs('住宿'));
+// 筛选按钮事件（统一管理 active 态 + 全部/动态城市/本地城市）
+const filterBtns = document.querySelectorAll('.filter-btn');
+filterBtns.forEach(btn => {
+    btn.addEventListener('click', async () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const type = btn.dataset.type;
+        if (type === '全部') {
+            if (currentCity?.isDynamic) {
+                showLoading(true);
+                try {
+                    const [sights, foods, hotels] = await Promise.all([
+                        searchAmapPOIs(currentCity.name, '景点'),
+                        searchAmapPOIs(currentCity.name, '美食'),
+                        searchAmapPOIs(currentCity.name, '住宿')
+                    ]);
+                    currentPOIs = [...sights, ...foods, ...hotels];
+                    viewer.entities.removeAll();
+                    renderCityPOIs(currentPOIs);
+                    if (rightPanel.classList.contains('show')) {
+                        currentProvincePois[currentCity.name] = currentPOIs;
+                        refreshRightPanel();
+                    }
+                } catch (e) { showToast('加载失败'); }
+                finally { showLoading(false); }
+            } else if (currentCity) {
+                currentPOIs = originalPOIs[currentCity.name] || [];
+                viewer.entities.removeAll();
+                renderCityPOIs(currentPOIs);
+                if (rightPanel.classList.contains('show')) {
+                    currentProvincePois[currentCity.name] = currentPOIs;
+                    refreshRightPanel();
+                }
+            }
+        } else {
+            refreshDynamicCityPOIs(type);
+        }
+    });
+});
 
 // 右侧面板拉出箭头
 panelTab.addEventListener('click', () => {
@@ -1047,13 +1086,21 @@ function parseShareLink() {
             ticket: p.k
         }));
         updateTripDisplay();
-        showToast('已加载分享的行程');
+        showToast('已加载好友分享的行程');
+        if (tripList.length > 0) {
+            const first = tripList[0];
+            if (first.city) flyToLocation(first.city);
+        }
     }
     // v1 兼容
     else if (decoded.version === 'popmap-v1' && Array.isArray(decoded.trip)) {
         tripList = decoded.trip;
         updateTripDisplay();
-        showToast('已加载分享的行程');
+        showToast('已加载好友分享的行程');
+        if (tripList.length > 0) {
+            const first = tripList[0];
+            if (first.city) flyToLocation(first.city);
+        }
     }
 }
 
