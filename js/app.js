@@ -1245,3 +1245,16 @@ document.getElementById('feedback-btn').addEventListener('click', () => {
     const body = encodeURIComponent(msg.trim() + '\n\n---\n提交自: ' + navigator.userAgent);
     window.open(`https://github.com/q1ngshi/popmap/issues/new?title=${title}&body=${body}`, '_blank');
 });
+
+// ==================== 随机飞 ====================
+document.getElementById('btn-random').addEventListener('click', () => {
+    const randomCities = [
+        '北京', '上海', '杭州', '成都', '广州', '深圳', '南京',
+        '西安', '重庆', '武汉', '长沙', '厦门', '青岛', '大连',
+        '苏州', '昆明', '丽江', '拉萨', '哈尔滨', '三亚', '桂林',
+        '张家界', '黄山', '敦煌', '喀纳斯', '稻城', '漠河'
+    ];
+    const randomCity = randomCities[Math.floor(Math.random() * randomCities.length)];
+    searchInput.value = randomCity;
+    flyToLocation(randomCity);
+});
