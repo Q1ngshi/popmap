@@ -1214,3 +1214,13 @@ setTimeout(() => {
     if (splash) { splash.style.transition = 'opacity 0.5s'; splash.style.opacity = '0'; setTimeout(() => splash.remove(), 500); }
 }, 1000);
 window.addEventListener('load', () => setTimeout(() => Perf.report(), 500));
+
+// ==================== 反馈入口 ====================
+document.getElementById('feedback-btn').addEventListener('click', () => {
+    const msg = prompt('💬 告诉我们你的想法（建议 / Bug / 夸赞都可以）：');
+    if (!msg || !msg.trim()) return;
+    
+    const title = encodeURIComponent('[用户反馈] ' + msg.trim().substring(0, 30));
+    const body = encodeURIComponent(msg.trim() + '\n\n---\n提交自: ' + navigator.userAgent);
+    window.open(`https://github.com/q1ngshi/popmap/issues/new?title=${title}&body=${body}`, '_blank');
+});
