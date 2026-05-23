@@ -1,0 +1,13 @@
+{
+  "name": "PopMap · 3D 旅行规划",
+  "short_name": "PopMap",
+  "description": "在 3D 地球上探索城市，智能规划旅行路线",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f8f5e6",
+  "theme_color": "#3a2a1a",
+  "icons": [
+    { "src": "./screenshot.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./screenshot.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

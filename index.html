@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PopMap · 全功能版</title>
+
+    <!-- PWA -->
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#3a2a1a">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="PopMap · 3D 旅行规划">
+    <meta property="og:description" content="在 3D 地球上探索城市，智能规划旅行路线，一键分享行程">
+    <meta property="og:image" content="./screenshot.png">
+    <meta property="og:url" content="">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="PopMap">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PopMap · 3D 旅行规划">
+    <meta name="twitter:description" content="在 3D 地球上探索城市，智能规划旅行路线，一键分享行程">
+    <meta name="twitter:image" content="https://q1ngshi.github.io/popmap/screenshot.png">
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Cesium.js - 由 config.js 控制路径（本地/在线自适应） -->
+    <script>
+        window.CESIUM_BASE_URL = location.hostname.includes('github.io') ? '/PopMap/cesium/' : 'https://cesium.com/downloads/cesiumjs/releases/1.111/Build/Cesium/';
+    </script>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.111/Build/Cesium/Cesium.js"></script>
+    <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.111/Build/Cesium/Widgets/widgets.css">
+</head>
+<body>
+    <div id="cesiumContainer"></div>
+    <div id="ui-container">
+        <div id="location-label">搜索省份或城市...</div>
+        <div class="control-row">
+            <input type="text" id="search-input" placeholder="搜索（如：浙江、宁波 杭州）" autocomplete="off">
+            <div id="suggestions"></div>
+            <div class="filter-group">
+                <button class="filter-btn active" data-type="景点" id="filter-sight">⛩️ 景点</button>
+                <button class="filter-btn" data-type="美食" id="filter-food">🍜 美食</button>
+                <button class="filter-btn" data-type="住宿" id="filter-hotel">🏨 住宿</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧拉出箭头 -->
+    <div id="panel-tab" class="hidden"><span>◀</span></div>
+
+    <!-- 右侧面板 -->
+    <div id="right-panel">
+        <div id="panel-main">
+            <div class="panel-header">
+                <span class="title" id="panel-title">📍 选择景点</span>
+                <button class="panel-close" id="panel-close">×</button>
+            </div>
+            <div class="poi-section" id="poi-section"></div>
+            <div class="trip-section" id="trip-section">
+                <div class="trip-title">🗺️ 我的行程</div>
+                <div id="trip-list">尚未添加地点</div>
+            </div>
+            <div class="panel-buttons">
+                <button class="btn-panel" id="btn-share" disabled>🔗 分享</button>
+                <button class="btn-panel" id="btn-route" disabled>🚀 规划路线</button>
+                <button class="btn-panel clear" id="btn-clear-trip">清空行程</button>
+            </div>
+        </div>
+
+        <div id="panel-detail" style="display:none; flex-direction:column; height:100%;">
+            <div class="panel-header">
+                <button class="panel-back" id="panel-back">← 返回列表</button>
+                <button class="panel-close" id="panel-close-detail">×</button>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding:16px;">
+                <div style="font-size:20px; font-weight:bold; color:#3a2a1a;" id="detail-name"></div>
+                <div style="display:flex; gap:12px; margin:8px 0; font-size:13px; color:#8a7a6a;">
+                    <span>⭐ <span id="detail-rating"></span></span>
+                    <span>🕐 <span id="detail-hours"></span></span>
+                    <span>🎫 <span id="detail-ticket"></span></span>
+                </div>
+                <div style="border-top:1px solid #e0d5c0; margin-top:12px; padding-top:12px; font-size:14px; color:#5a4a3a; line-height:1.8;" id="detail-intro"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部路线面板 -->
+    <div id="route-bottom-panel">
+        <button class="route-close-btn" id="route-close-btn">×</button>
+        <div class="route-left" id="route-left-content"></div>
+        <div class="route-right" id="route-right-content"></div>
+    </div>
+
+    <!-- POI浮动简介卡片 -->
+    <div id="poi-float-card"></div>
+
+    <div class="hint">🖱️ 左键旋转 ｜ 滚轮缩放 ｜ 🔍 智能搜索 ｜ 点击景点名看简介</div>
+
+    <!-- 首次使用引导 -->
+    <div id="first-guide" class="first-guide">
+        <div class="guide-content">
+            <h3>🌍 欢迎使用 PopMap</h3>
+            <p>在搜索框中输入省份或城市名，开始探索吧！</p>
+            <p>试试搜索：<span class="guide-example">浙江</span>、<span class="guide-example">宁波 杭州</span>、<span class="guide-example">成都</span></p>
+            <button class="guide-close" onclick="this.parentElement.parentElement.style.display='none';localStorage.setItem('popmap_first_visit','true')">开始探索 →</button>
+        </div>
+    </div>
+
+    <!-- 加载指示器 -->
+    <div id="loading-indicator" class="loading-indicator">
+        <div class="spinner"></div>
+        <span>正在加载...</span>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div id="toast" class="toast"></div>
+
+    <!-- LZString 压缩库（行程分享） -->
+    <script src="https://cdn.jsdelivr.net/npm/lz-string@1.5.0/libs/lz-string.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+
+    <!-- Service Worker 注册 -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      }
+    </script>
+</body>
+</html>
